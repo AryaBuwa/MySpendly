@@ -13,12 +13,13 @@ if "budget_goal" not in st.session_state:
 # 2. PAGE CONFIG
 st.set_page_config(page_title="Spendly Pro", page_icon="💰", layout="wide")
 
-# Custom CSS for clean UI
+# Custom CSS for "Vibe-Coded" Professional UI
 st.markdown("""
     <style>
     .stMetric { background-color: #ffffff; padding: 20px; border-radius: 15px; border: 1px solid #eef0f2; box-shadow: 0px 4px 12px rgba(0,0,0,0.03); }
-    [data-testid="stMetricValue"] { color: #1b5e20; }
-    .stButton>button { border-radius: 8px; }
+    [data-testid="stMetricValue"] { color: #1b5e20; font-weight: 700; }
+    .stButton>button { border-radius: 10px; font-weight: 600; }
+    .stProgress > div > div > div > div { background-color: #1b5e20; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -41,13 +42,15 @@ def validate_date():
     else: formatted = clean
     st.session_state.date_input = formatted
 
-# --- HEADER & METRICS ---
-st.title("💰 Spendly")
-st.caption("Professional Expense Tracking & Financial Insights")
+# --- HEADER & TOP METRICS ---
+st.title("💰 Spendly Pro")
+st.caption("Simplified Financial Intelligence")
 
+# We create the DataFrame here so it reflects the latest session state on every rerun
 df = pd.DataFrame(st.session_state.expense_history)
+
 total_spent = df["Amount"].sum() if not df.empty else 0.0
-top_cat = df["Category"].mode()[0] if not df.empty else "None"
+top_cat = df["Category"].mode()[0] if not df.empty else "N/A"
 budget_left = max(0.0, st.session_state.budget_goal - total_spent)
 
 m1, m2, m3 = st.columns(3)
@@ -57,7 +60,7 @@ m3.metric("Budget Remaining", f"${budget_left:,.2f}")
 
 # Progress Bar
 progress = min(1.0, total_spent / st.session_state.budget_goal)
-st.write(f"**Monthly Budget Goal: ${st.session_state.budget_goal}**")
+st.write(f"**Monthly Progress to Goal: ${st.session_state.budget_goal}**")
 st.progress(progress)
 
 st.divider()
@@ -68,15 +71,15 @@ with st.container():
     
     with c1:
         date_val = st.text_input("Date (DD/MM/YYYY)", key="date_input", on_change=validate_date, placeholder="DD/MM/YYYY")
-        desc_val = st.text_input("Description", key="desc_input", placeholder="Store name / Item")
+        desc_val = st.text_input("Description", key="desc_input", placeholder="Store / Service")
 
     with c2:
         categories = ["Housing", "Groceries", "Dining", "Transport", "Gym", "Entertainment", "Shopping", "Medical", "Investment", "Misc"]
         cat_val = st.selectbox("Category", options=categories, key="cat_input")
-        amt_val = st.number_input("Amount ($)", min_value=0.0, step=0.01, key="amt_input")
+        amt_val = st.number_input("Amount ($)", min_value=0.0, step=1.0, key="amt_input")
 
     with c3:
-        st.write("**Budget Goal Controls**")
+        st.write("**Budget Management**")
         bc1, bc2, bc3 = st.columns([1, 2, 1])
         with bc1:
             if st.button("➖"):
@@ -95,43 +98,62 @@ with st.container():
                 st.session_state.expense_history.append({
                     "Date": date_val, "Description": desc_val, "Category": cat_val, "Amount": amt_val
                 })
+                # Reset inputs
                 st.session_state.date_input = ""
                 st.session_state.desc_input = ""
                 st.session_state.amt_input = 0.0
                 st.toast("Expense Logged!", icon="💰")
-                st.rerun()
+                st.rerun() # This triggers the DataFrame to refresh at the top
             else:
-                st.error("Check inputs!")
+                st.error("Please complete all fields.")
 
 st.divider()
 
 # --- ANALYTICS SECTION ---
-col_left, col_right = st.columns([0.6, 0.4])
+if not df.empty:
+    st.subheader("📊 Spending Analytics")
+    col_left, col_right = st.columns([0.5, 0.5])
 
-with col_left:
-    st.subheader("📋 Expense Log")
-    if not df.empty:
-        st.dataframe(df, use_container_width=True, height=300)
-        ec1, ec2 = st.columns(2)
-        with ec1:
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download Report (CSV)", data=csv, file_name="spendly_report.csv", mime="text/csv", use_container_width=True)
-        with ec2:
-            if st.button("🗑️ Delete Last Entry", use_container_width=True):
-                if st.session_state.expense_history:
-                    st.session_state.expense_history.pop()
-                    st.rerun()
-    else:
-        st.info("Start adding expenses to see your log!")
+    with col_left:
+        # ATTRACTIVE BAR GRAPH: Daily Spending Trend
+        # Group data for the bar chart
+        daily_df = df.groupby('Date')['Amount'].sum().reset_index()
+        fig_bar = px.bar(
+            daily_df, x='Date', y='Amount', 
+            title="➤ Spending by Day",
+            template="plotly_white",
+            color='Amount', 
+            color_continuous_scale="Greens"
+        )
+        fig_bar.update_layout(showlegend=False, coloraxis_showscale=False, margin=dict(t=40, b=0, l=0, r=0))
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-with col_right:
-    st.subheader("🥧 Spending Breakdown")
-    if not df.empty:
-        fig = px.pie(df, values='Amount', names='Category', hole=0.4, color_discrete_sequence=px.colors.sequential.Greens_r)
-        fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=300)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.caption("No data to chart yet.")
+    with col_right:
+        # PIE CHART: Category Breakdown
+        fig_pie = px.pie(
+            df, values='Amount', names='Category', 
+            hole=0.5, 
+            title="➤ Category Allocation",
+            color_discrete_sequence=px.colors.sequential.Greens_r
+        )
+        fig_pie.update_layout(margin=dict(t=40, b=0, l=0, r=0))
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    st.subheader("📋 Detailed Expense Log")
+    st.dataframe(df, use_container_width=True, height=250)
+    
+    # Action Buttons
+    ec1, ec2 = st.columns(2)
+    with ec1:
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Export CSV", data=csv, file_name="spendly_data.csv", mime="text/csv", use_container_width=True)
+    with ec2:
+        if st.button("🗑️ Delete Last Entry", use_container_width=True):
+            if st.session_state.expense_history:
+                st.session_state.expense_history.pop()
+                st.rerun()
+else:
+    st.info("No data available yet. Start by logging an expense above!")
 
 # --- WISDOM SECTION ---
 st.divider()
@@ -142,11 +164,10 @@ tips = [
 
 st.subheader("💡 Financial Wisdom")
 
-# The merged button and arrow
 if st.button("➤ Next Tip"):
     st.session_state.tip_index = (st.session_state.tip_index + 1) % len(tips)
 
 if total_spent > st.session_state.budget_goal:
-    st.error(f"⚠️ High Spending Alert: You are ${total_spent - st.session_state.budget_goal:,.2f} over your goal!")
+    st.error(f"⚠️ High Spending Alert: You are ${total_spent - st.session_state.budget_goal:,.2f} over goal!")
 else:
     st.success(f"➤ {tips[st.session_state.tip_index]}")
