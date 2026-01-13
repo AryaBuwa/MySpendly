@@ -1,17 +1,3 @@
-Personal Expense Tracker - Overview
-
-Effortless Expense Management: The Personal Expense Tracker is a sleek Python tool designed to help you track and manage your expenses easily.
-
-Track Key Details: Record the date, description, category, and amount for each expense. The tracker will then provide a clear overview of your spending habits.
-
-Filter by Date/Category: Easily filter expenses by date or category to analyze specific spending trends.
-
-Financial Tips: Receive random financial tips from a curated list, covering topics like budgeting, saving a percentage of income, and monitoring spending behavior.
-
-Ideal for Financial Growth: A perfect tool for those looking to improve their financial knowledge and manage their money better.
-
-User-Friendly & Efficient: Simple yet powerful, the tracker helps you stay on top of your financial goals.
-
-Seamless Data Entry: Exception handling ensures smooth data entry without errors.
-
-Inspired by Google & ChatGPT: The code was created with insights from Google and ChatGPT.
+streamlit
+pandas
+plotly
