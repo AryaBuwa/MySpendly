@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import datetime
 
 # 1. PERSISTENT STORAGE
 if "expense_history" not in st.session_state:
@@ -14,18 +13,17 @@ if "budget_goal" not in st.session_state:
 # 2. PAGE CONFIG
 st.set_page_config(page_title="Spendly Pro", page_icon="💰", layout="wide")
 
-# Custom CSS for "Bordered" look
+# Custom CSS for clean UI
 st.markdown("""
     <style>
     .stMetric { background-color: #ffffff; padding: 20px; border-radius: 15px; border: 1px solid #eef0f2; box-shadow: 0px 4px 12px rgba(0,0,0,0.03); }
     [data-testid="stMetricValue"] { color: #1b5e20; }
+    .stButton>button { border-radius: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. DATE VALIDATION LOGIC
+# 3. DATE VALIDATION CALLBACK
 def validate_date():
-    # FIX: We use a temporary variable to avoid modifying session_state directly 
-    # during the widget's own callback to prevent the StreamlitAPIException.
     raw = st.session_state.date_input.replace("/", "")
     clean = "".join(filter(str.isdigit, raw))
     formatted = ""
@@ -69,7 +67,6 @@ with st.container():
     c1, c2, c3 = st.columns([1, 1, 1])
     
     with c1:
-        # Removed "Verified" labels for cleaner UI
         date_val = st.text_input("Date (DD/MM/YYYY)", key="date_input", on_change=validate_date, placeholder="DD/MM/YYYY")
         desc_val = st.text_input("Description", key="desc_input", placeholder="Store name / Item")
 
@@ -80,7 +77,6 @@ with st.container():
 
     with c3:
         st.write("**Budget Goal Controls**")
-        # FIX: Quick +/- buttons with st.rerun() to ensure single-click updates
         bc1, bc2, bc3 = st.columns([1, 2, 1])
         with bc1:
             if st.button("➖"):
@@ -93,20 +89,19 @@ with st.container():
                 st.session_state.budget_goal += 100.0
                 st.rerun()
         
-        st.write(" ") # Spacer
+        st.write(" ") 
         if st.button("Save Expense", use_container_width=True, type="primary"):
             if len(date_val) == 10 and desc_val and amt_val > 0:
                 st.session_state.expense_history.append({
                     "Date": date_val, "Description": desc_val, "Category": cat_val, "Amount": amt_val
                 })
-                # Clear inputs via session state
                 st.session_state.date_input = ""
                 st.session_state.desc_input = ""
                 st.session_state.amt_input = 0.0
                 st.toast("Expense Logged!", icon="💰")
                 st.rerun()
             else:
-                st.error("Please fill all fields correctly.")
+                st.error("Check inputs!")
 
 st.divider()
 
@@ -145,16 +140,13 @@ tips = [
     "Build a 3-month emergency fund.", "Invest in low-cost index funds.", "Minimize high-interest debt."
 ]
 
-tw1, tw2 = st.columns([0.95, 0.05])
-with tw1:
-    st.subheader("💡 Financial Wisdom")
-with tw2:
-    # Changed ">" to "➤" as requested
-    if st.button("➤"):
-        st.session_state.tip_index = (st.session_state.tip_index + 1) % len(tips)
+st.subheader("💡 Financial Wisdom")
+
+# The merged button and arrow
+if st.button("➤ Next Tip"):
+    st.session_state.tip_index = (st.session_state.tip_index + 1) % len(tips)
 
 if total_spent > st.session_state.budget_goal:
     st.error(f"⚠️ High Spending Alert: You are ${total_spent - st.session_state.budget_goal:,.2f} over your goal!")
 else:
-    # Changed tip indicator to "➤"
     st.success(f"➤ {tips[st.session_state.tip_index]}")
