@@ -46,3 +46,23 @@ Manage your finances using the digital envelope method. Customize limits for cor
 git clone [https://github.com/AryaBuwa/MySpendly.git](https://github.com/AryaBuwa/MySpendly.git) && cd MySpendly
 pip install -r requirements.txt
 streamlit run app.py
+
+
+---
+
+## 📝 Changelog & Roadmap
+
+### **v1.0.0** — *Current Release*
+> **Initial Stable Build**
+* **Design:** Implementation of the Apple/Notion Dark Mode UI using custom CSS injection.
+* **Logic:** Core "Envelope" budgeting system for categorized financial tracking.
+* **Data:** CSV export functionality and interactive 30-day expenditure heatmap.
+* **ID System:** UUID-backed transaction logging for precise record management.
+
+### **Planned Features (Roadmap)**
+* [ ] **Multi-Currency Support:** Automatic conversion for international use.
+* [ ] **Recurring Transactions:** Automation for monthly subscriptions and rent.
+* [ ] **PDF Summaries:** Beautifully formatted monthly financial reports for offline storage.
+* [ ] **Visual Alerts:** Notifications when an "Envelope" exceeds 80% of its capacity.
+
+---
