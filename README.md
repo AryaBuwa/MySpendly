@@ -66,3 +66,19 @@ streamlit run app.py
 * [ ] **Visual Alerts:** Notifications when an "Envelope" exceeds 80% of its capacity.
 
 ---
+
+---
+
+## 🛡️ Usage Policy & Protection
+
+**All Rights Reserved.** *To ensure the integrity of the project and protect the original work:*
+
+* **Personal Use Only:** This application is intended for individual financial tracking and educational purposes.
+* **No Unauthorized Redistribution:** You may fork this repository for personal learning, but you may **not** re-publish this application under a different name or use it for commercial profit without explicit written permission.
+* **No Malicious Use:** Any attempt to reverse-engineer the application to inject malicious code or disrupt the hosted service is strictly prohibited.
+* **Data Privacy:** This app does not store data on a permanent server; all data lives in your browser session. **Export your CSV regularly** to avoid data loss.
+
+> [!CAUTION]
+> **Disclaimer:** The author is not responsible for any financial decisions made based on the data provided by this app. Use at your own risk.
+
+---
