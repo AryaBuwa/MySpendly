@@ -47,7 +47,7 @@ git clone [https://github.com/AryaBuwa/MySpendly.git](https://github.com/AryaBuw
 pip install -r requirements.txt
 streamlit run app.py
 
-
+```
 ---
 
 ## 📝 Changelog & Roadmap
