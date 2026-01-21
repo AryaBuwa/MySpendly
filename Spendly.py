@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import uuid
 import base64
+from fpdf import FPDF
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Spendly Pro", page_icon="💳", layout="wide")
@@ -44,7 +45,10 @@ st.markdown("""
     background-color: #007aff !important; color: #ffffff !important;
     width: 100%; height: 38px; border-radius: 8px;
     text-decoration: none !important; font-weight: 500; font-size: 14px;
-    margin-top: 20px;
+    margin-top: 0px; /* Spacing handled by container now */
+}
+.download-btn-pdf {
+    background-color: #ff3b30 !important; /* Red for PDF */
 }
 
 /* OVERRIDE NATIVE STREAMLIT BUTTONS TO MATCH NOTION */
@@ -85,6 +89,69 @@ if "income" not in st.session_state:
 
 df = pd.DataFrame(st.session_state.expense_history)
 
+# ---------------- HELPER FUNCTIONS ----------------
+
+def generate_pdf(dataframe, income, total_spent, total_savings):
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Title
+    pdf.set_font("Arial", 'B', 20)
+    pdf.cell(0, 10, "Spendly Monthly Report", ln=True, align='C')
+    pdf.ln(10)
+
+    # Financial Summary
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Financial Summary", ln=True)
+    pdf.set_font("Arial", '', 11)
+    
+    # Simple table for summary
+    pdf.cell(50, 8, f"Monthly Income:", border=0)
+    pdf.cell(50, 8, f"{income:,.2f}", border=0, ln=True)
+    
+    pdf.cell(50, 8, f"Total Expenditure:", border=0)
+    pdf.cell(50, 8, f"{total_spent:,.2f}", border=0, ln=True)
+    
+    pdf.cell(50, 8, f"Total Savings:", border=0)
+    if total_savings >= 0:
+        pdf.set_text_color(0, 128, 0)
+    else:
+        pdf.set_text_color(255, 0, 0)
+    pdf.cell(50, 8, f"{total_savings:,.2f}", border=0, ln=True)
+    pdf.set_text_color(0, 0, 0) # Reset text color
+    
+    pdf.ln(10)
+
+    # Transaction Table Header
+    pdf.set_font("Arial", 'B', 10)
+    pdf.set_fill_color(200, 220, 255)
+    pdf.cell(30, 8, "Date", 1, 0, 'C', 1)
+    pdf.cell(40, 8, "Category", 1, 0, 'C', 1)
+    pdf.cell(80, 8, "Description", 1, 0, 'C', 1)
+    pdf.cell(40, 8, "Amount", 1, 1, 'C', 1)
+
+    # Transaction Table Rows
+    pdf.set_font("Arial", '', 9)
+    if not dataframe.empty:
+        # Sort by date
+        df_sorted = dataframe.sort_values(by="Date", ascending=False)
+        for index, row in df_sorted.iterrows():
+            pdf.cell(30, 8, str(row['Date']), 1)
+            pdf.cell(40, 8, str(row['Category']), 1)
+            
+            # Truncate description if too long
+            desc = str(row['Description'])
+            if len(desc) > 35:
+                desc = desc[:32] + "..."
+            pdf.cell(80, 8, desc, 1)
+            
+            pdf.cell(40, 8, f"{row['Amount']:,.2f}", 1, 1, 'R')
+    else:
+        pdf.cell(190, 8, "No transactions recorded.", 1, 1, 'C')
+    
+    # Return bytes correctly
+    return pdf.output(dest='S').encode('latin-1')
+
 # ---------------- SIDEBAR ----------------
 with st.sidebar:
     st.markdown("### 💵 Financials")
@@ -94,27 +161,59 @@ with st.sidebar:
     for cat in st.session_state.envelopes.keys():
         st.session_state.envelopes[cat] = st.number_input(f"{cat}", value=float(st.session_state.envelopes[cat]), step=500.0, key=f"v10_{cat}")
     
+    st.markdown("### 📥 Export Data")
     if not df.empty:
+        # 1. Prepare CSV Data
         csv_data = df.to_csv(index=False).encode('utf-8')
-        b64 = base64.b64encode(csv_data).decode()
-        st.markdown(f'<a href="data:file/csv;base64,{b64}" download="spendly_ledger.csv" class="download-btn">Download CSV</a>', unsafe_allow_html=True)
+        b64_csv = base64.b64encode(csv_data).decode()
+        
+        # 2. Prepare PDF Data
+        total_budget = sum(st.session_state.envelopes.values())
+        total_spent = df['Amount'].sum() if not df.empty else 0.0
+        total_savings = st.session_state.income - total_spent
+        
+        # Explicit assignment to prevent printing
+        pdf_bytes = generate_pdf(df, st.session_state.income, total_spent, total_savings)
+        b64_pdf = base64.b64encode(pdf_bytes).decode()
+        
+        # 3. Render Both Buttons in ONE Markdown call to prevent "None" artifacts
+        st.markdown(f'''
+            <a href="data:file/csv;base64,{b64_csv}" download="spendly_ledger.csv" class="download-btn">Download CSV</a>
+            <div style="height: 10px;"></div>
+            <a href="data:application/pdf;base64,{b64_pdf}" download="spendly_report.pdf" class="download-btn download-btn-pdf">Download PDF Report</a>
+        ''', unsafe_allow_html=True)
+    else:
+        st.info("Add transactions to enable export.")
     
+    st.markdown('<div class="sidebar-spacer"></div>', unsafe_allow_html=True)
     if st.button("🗑️ Reset All Data", use_container_width=True):
         st.session_state.expense_history = []
         st.rerun()
 
 # ---------------- TOP METRICS ----------------
+# ---------------- TOP METRICS ----------------
 st.title("Spendly Pro")
 total_budget = sum(st.session_state.envelopes.values())
 total_spent = df['Amount'].sum() if not df.empty else 0.0
 total_savings = st.session_state.income - total_spent
-savings_color = "#34c759" if total_savings >= 0 else "#ff3b30"
+
+# Dynamic Labeling Logic
+if total_savings >= 0:
+    savings_label = "SAVINGS"
+    savings_color = "#34c759"  # Apple Green
+    display_value = total_savings
+else:
+    savings_label = "OVERSPENT"
+    savings_color = "#ff3b30"  # Apple Red
+    display_value = abs(total_savings) # Removes the minus sign for a cleaner look
 
 m1, m2, m3 = st.columns(3)
-with m1: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">CAPACITY</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
-with m2: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">EXPENDITURE</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
-with m3: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">SAVINGS</small><br><h2 style="margin:0; color:{savings_color}">₹{total_savings:,.0f}</h2></div>', unsafe_allow_html=True)
-
+with m1: 
+    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">CAPACITY</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
+with m2: 
+    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">EXPENDITURE</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
+with m3: 
+    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">{savings_label}</small><br><h2 style="margin:0; color:{savings_color}">₹{display_value:,.0f}</h2></div>', unsafe_allow_html=True)
 # ---------------- ENTRY FORM ----------------
 st.write("##")
 with st.container():
@@ -187,7 +286,7 @@ if not df.empty:
                 </div>
             ''', unsafe_allow_html=True)
         with c_del:
-            # Vertical alignment spacer
+            # Vertical alignment spacer added
             st.markdown('<div style="margin-top: 22px;"></div>', unsafe_allow_html=True)
             # Native streamlit button with custom CSS styling applied above
             if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
