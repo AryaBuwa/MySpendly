@@ -18,6 +18,27 @@ st.markdown("""
 .stApp { background-color: #191919 !important; color: #ffffff !important; font-family: 'Inter', sans-serif; }
 [data-testid="stSidebar"] { background-color: #202020 !important; border-right: 1px solid #2f2f2f !important; }
 
+/* Header Action Group Styling */
+.action-group { display: flex; gap: 10px; justify-content: flex-end; align-items: center; padding-top: 5px; }
+.action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px; 
+    height: 38px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    font-weight: 500;
+    text-decoration: none !important; 
+    color: #efefef !important;
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px solid #2f2f2f;
+    transition: all 0.2s ease;
+}
+.action-link:hover { background: rgba(255, 255, 255, 0.1); border-color: #3a3a3a; color: #ffffff !important; }
+.action-link-primary { background: #007aff !important; border: none !important; color: white !important; }
+.action-link-primary:hover { background: #0063cc !important; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3); }
+
 /* Sidebar & Layout Elements */
 .sidebar-spacer { margin-top: 25px; margin-bottom: 10px; border-top: 1px solid #2f2f2f; }
 
@@ -39,19 +60,7 @@ st.markdown("""
 .tag-bills { background: #352c1e; color: #dfab01; }
 .tag-other { background: #2f2f2f; color: #9b9b9b; }
 
-/* Custom Download Link Button */
-.download-btn {
-    display: flex; align-items: center; justify-content: center;
-    background-color: #007aff !important; color: #ffffff !important;
-    width: 100%; height: 38px; border-radius: 8px;
-    text-decoration: none !important; font-weight: 500; font-size: 14px;
-    margin-top: 0px; /* Spacing handled by container now */
-}
-.download-btn-pdf {
-    background-color: #ff3b30 !important; /* Red for PDF */
-}
-
-/* OVERRIDE NATIVE STREAMLIT BUTTONS TO MATCH NOTION */
+/* OVERRIDE NATIVE STREAMLIT BUTTONS */
 div[data-testid="stButton"] button {
     background-color: rgba(255, 255, 255, 0.05) !important;
     color: #f2f2f2 !important;
@@ -59,23 +68,14 @@ div[data-testid="stButton"] button {
     border-radius: 8px !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    height: 34px !important;
+    height: 38px !important; 
     transition: all 0.2s ease !important;
 }
-
 div[data-testid="stButton"] button:hover {
     background-color: rgba(255, 255, 255, 0.1) !important;
     border-color: #3a3a3a !important;
     color: #ffffff !important;
 }
-
-/* Primary Button (Log Transaction) Specific Styling */
-div[data-testid="column"]:nth-of-type(1) button[kind="secondary"] {
-    background-color: #007aff !important;
-    border: none !important;
-    color: white !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -90,182 +90,152 @@ if "income" not in st.session_state:
 df = pd.DataFrame(st.session_state.expense_history)
 
 # ---------------- HELPER FUNCTIONS ----------------
-
 def generate_pdf(dataframe, income, total_spent, total_savings):
     pdf = FPDF()
     pdf.add_page()
-    
-    # Title
     pdf.set_font("Arial", 'B', 20)
-    pdf.cell(0, 10, "Spendly Monthly Report", ln=True, align='C')
+    pdf.cell(0, 10, "Wealth Intelligence Report", ln=True, align='C')
     pdf.ln(10)
-
-    # Financial Summary
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Financial Summary", ln=True)
     pdf.set_font("Arial", '', 11)
-    
-    # Simple table for summary
-    pdf.cell(50, 8, f"Monthly Income:", border=0)
-    pdf.cell(50, 8, f"{income:,.2f}", border=0, ln=True)
-    
-    pdf.cell(50, 8, f"Total Expenditure:", border=0)
-    pdf.cell(50, 8, f"{total_spent:,.2f}", border=0, ln=True)
-    
-    pdf.cell(50, 8, f"Total Savings:", border=0)
+    pdf.cell(50, 8, f"Total Capital: {income:,.2f}", ln=True)
+    pdf.cell(50, 8, f"Total Outflow: {total_spent:,.2f}", ln=True)
     if total_savings >= 0:
         pdf.set_text_color(0, 128, 0)
+        pdf.cell(50, 8, f"Capital Retained: {total_savings:,.2f}", ln=True)
     else:
         pdf.set_text_color(255, 0, 0)
-    pdf.cell(50, 8, f"{total_savings:,.2f}", border=0, ln=True)
-    pdf.set_text_color(0, 0, 0) # Reset text color
-    
-    pdf.ln(10)
-
-    # Transaction Table Header
+        pdf.cell(50, 8, f"Deficit: {abs(total_savings):,.2f}", ln=True)
+    pdf.set_text_color(0, 0, 0); pdf.ln(10)
     pdf.set_font("Arial", 'B', 10)
-    pdf.set_fill_color(200, 220, 255)
-    pdf.cell(30, 8, "Date", 1, 0, 'C', 1)
-    pdf.cell(40, 8, "Category", 1, 0, 'C', 1)
-    pdf.cell(80, 8, "Description", 1, 0, 'C', 1)
-    pdf.cell(40, 8, "Amount", 1, 1, 'C', 1)
-
-    # Transaction Table Rows
+    pdf.cell(30, 8, "Timeline", 1); pdf.cell(40, 8, "Vibe", 1); pdf.cell(80, 8, "Context", 1); pdf.cell(40, 8, "Value", 1, 1)
     pdf.set_font("Arial", '', 9)
-    if not dataframe.empty:
-        # Sort by date
-        df_sorted = dataframe.sort_values(by="Date", ascending=False)
-        for index, row in df_sorted.iterrows():
-            pdf.cell(30, 8, str(row['Date']), 1)
-            pdf.cell(40, 8, str(row['Category']), 1)
-            
-            # Truncate description if too long
-            desc = str(row['Description'])
-            if len(desc) > 35:
-                desc = desc[:32] + "..."
-            pdf.cell(80, 8, desc, 1)
-            
-            pdf.cell(40, 8, f"{row['Amount']:,.2f}", 1, 1, 'R')
-    else:
-        pdf.cell(190, 8, "No transactions recorded.", 1, 1, 'C')
-    
-    # Return bytes correctly
+    for _, row in dataframe.iterrows():
+        pdf.cell(30, 8, str(row['Date']), 1)
+        pdf.cell(40, 8, str(row['Category']), 1)
+        pdf.cell(80, 8, str(row['Description'])[:35], 1)
+        pdf.cell(40, 8, f"{row['Amount']:,.2f}", 1, 1)
     return pdf.output(dest='S').encode('latin-1')
 
 # ---------------- SIDEBAR ----------------
 with st.sidebar:
-    st.markdown("### 💵 Financials")
-    st.session_state.income = st.number_input("Monthly Income", value=float(st.session_state.income), step=1000.0)
+    st.markdown("### 🏦 Vault Control")
+    st.session_state.income = st.number_input("Monthly Capital", value=float(st.session_state.income), step=1000.0)
     st.markdown('<div class="sidebar-spacer"></div>', unsafe_allow_html=True)
-    st.markdown("### ⚙️ Envelopes")
+    st.markdown("### 📦 Pocket Budgets")
     for cat in st.session_state.envelopes.keys():
         st.session_state.envelopes[cat] = st.number_input(f"{cat}", value=float(st.session_state.envelopes[cat]), step=500.0, key=f"v10_{cat}")
-    
-    st.markdown("### 📥 Export Data")
+
+# ---------------- HEADER & ACTION GROUP ----------------
+header_col1, header_col2 = st.columns([1, 1])
+with header_col1:
+    st.markdown('<h2 style="margin:0; font-weight:700; letter-spacing:-1px;">Spendly Pro</h2>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#71717a; font-size:13px; margin:0;">Command Center / Intelligence</p>', unsafe_allow_html=True)
+
+with header_col2:
     if not df.empty:
-        # 1. Prepare CSV Data
+        total_spent = df['Amount'].sum()
+        total_savings = st.session_state.income - total_spent
         csv_data = df.to_csv(index=False).encode('utf-8')
         b64_csv = base64.b64encode(csv_data).decode()
-        
-        # 2. Prepare PDF Data
-        total_budget = sum(st.session_state.envelopes.values())
-        total_spent = df['Amount'].sum() if not df.empty else 0.0
-        total_savings = st.session_state.income - total_spent
-        
-        # Explicit assignment to prevent printing
         pdf_bytes = generate_pdf(df, st.session_state.income, total_spent, total_savings)
         b64_pdf = base64.b64encode(pdf_bytes).decode()
         
-        # 3. Render Both Buttons in ONE Markdown call to prevent "None" artifacts
         st.markdown(f'''
-            <a href="data:file/csv;base64,{b64_csv}" download="spendly_ledger.csv" class="download-btn">Download CSV</a>
-            <div style="height: 10px;"></div>
-            <a href="data:application/pdf;base64,{b64_pdf}" download="spendly_report.pdf" class="download-btn download-btn-pdf">Download PDF Report</a>
+            <div class="action-group">
+                <a href="data:file/csv;base64,{b64_csv}" download="wealth_ledger.csv" class="action-link">Grab CSV</a>
+                <a href="data:application/pdf;base64,{b64_pdf}" download="wealth_report.pdf" class="action-link action-link-primary">Export Legacy PDF</a>
+            </div>
         ''', unsafe_allow_html=True)
-    else:
-        st.info("Add transactions to enable export.")
-    
-    st.markdown('<div class="sidebar-spacer"></div>', unsafe_allow_html=True)
-    if st.button("🗑️ Reset All Data", use_container_width=True):
-        st.session_state.expense_history = []
-        st.rerun()
 
-# ---------------- TOP METRICS ----------------
-# ---------------- TOP METRICS ----------------
-st.title("Spendly Pro")
+st.write("##")
+
+# ---------------- METRICS ----------------
 total_budget = sum(st.session_state.envelopes.values())
 total_spent = df['Amount'].sum() if not df.empty else 0.0
 total_savings = st.session_state.income - total_spent
 
-# Dynamic Labeling Logic
 if total_savings >= 0:
-    savings_label = "SAVINGS"
-    savings_color = "#34c759"  # Apple Green
-    display_value = total_savings
+    savings_label, savings_color, display_value = "WEALTH KEPT", "#34c759", total_savings
 else:
-    savings_label = "OVERSPENT"
-    savings_color = "#ff3b30"  # Apple Red
-    display_value = abs(total_savings) # Removes the minus sign for a cleaner look
+    savings_label, savings_color, display_value = "LIMIT EXCEEDED", "#ff3b30", abs(total_savings)
 
 m1, m2, m3 = st.columns(3)
-with m1: 
-    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">CAPACITY</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
-with m2: 
-    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">EXPENDITURE</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
-with m3: 
-    st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">{savings_label}</small><br><h2 style="margin:0; color:{savings_color}">₹{display_value:,.0f}</h2></div>', unsafe_allow_html=True)
+with m1: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">BUDGET POWER</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
+with m2: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">CASH OUTFLOW</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
+with m3: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">{savings_label}</small><br><h2 style="margin:0; color:{savings_color}">₹{display_value:,.0f}</h2></div>', unsafe_allow_html=True)
+
 # ---------------- ENTRY FORM ----------------
 st.write("##")
 with st.container():
     c1, c2, c3, c4 = st.columns([1.2, 1.2, 2.5, 1])
-    d_in = c1.date_input("Date")
-    cat_in = c2.selectbox("Category", list(st.session_state.envelopes.keys()))
-    desc_in = c3.text_input("Description", placeholder="Purchase details...")
-    amt_in = c4.number_input("Amount (₹)", min_value=0.0)
-    
+    d_in = c1.date_input("Timeline")
+    cat_in = c2.selectbox("Vibe", list(st.session_state.envelopes.keys()))
+    desc_in = c3.text_input("The Context", placeholder="Where did the money go?")
+    amt_in = c4.number_input("The Damage (₹)", min_value=0.0)
     is_today = d_in == datetime.now().date()
-    badge_html = f'<div class="apple-badge warning-neutral">⦿ Today</div>' if is_today else f'<div class="apple-badge warning-active">⚠️ {d_in.strftime("%b %d")}</div>'
-    
+    badge_html = f'<div class="apple-badge warning-neutral">⦿ Fresh</div>' if is_today else f'<div class="apple-badge warning-active">⚠️ {d_in.strftime("%b %d")}</div>'
     btn_col, warn_col = st.columns([1, 4])
     with btn_col:
-        # This button is styled as blue/primary in the CSS
-        if st.button("＋ Log Transaction", use_container_width=True):
+        if st.button("🚀 Commit Spending", use_container_width=True):
             if desc_in and amt_in > 0:
                 st.session_state.expense_history.insert(0, {"id": str(uuid.uuid4()), "Date": d_in, "Category": cat_in, "Description": desc_in, "Amount": amt_in})
                 st.rerun()
     with warn_col:
         st.markdown(f'<div style="height:45px; display:flex; align-items:center;">{badge_html}</div>', unsafe_allow_html=True)
 
-# ---------------- ANALYTICS ----------------
+# ---------------- ANALYTICS (HEATMAP BORDERS FIXED) ----------------
 st.write("##")
 col_pie, col_heat = st.columns([1, 2])
 with col_pie:
-    st.markdown("### 🍩 Allocation")
+    st.markdown("### 🍩 Distribution Vibe")
     if not df.empty:
         cat_sums = df.groupby('Category')['Amount'].sum().reset_index()
         fig_pie = go.Figure(data=[go.Pie(labels=cat_sums['Category'], values=cat_sums['Amount'], hole=.72, marker=dict(colors=['#007aff', '#34c759', '#ff9500', '#ff3b30', '#af52de'], line=dict(color='#191919', width=2)))])
         fig_pie.update_layout(showlegend=False, height=200, margin=dict(t=0, b=0, l=0, r=0), paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
+    else:
+        st.info("Log some data to see the split.")
 
 with col_heat:
-    st.markdown("### 🗓️ Activity (30 Days)")
+    st.markdown("### 🗓️ Momentum (30 Days)")
     today = datetime.now().date()
     last_30 = [today - timedelta(days=i) for i in range(30)]
     if not df.empty:
         df_c = df.copy()
         df_c['Date'] = pd.to_datetime(df_c['Date']).dt.date
         daily_sums = df_c.groupby('Date')['Amount'].sum().reindex(last_30, fill_value=0).values
-    else:
-        daily_sums = [0] * 30
-    fig_h = go.Figure(data=go.Heatmap(z=[daily_sums[i:i+6] for i in range(0, 30, 6)], colorscale=['#1d1d1d', '#0e4429', '#006d32', '#26a641', '#39d353'], showscale=False, xgap=3, ygap=3))
-    fig_h.update_layout(height=200, margin=dict(t=0,b=0,l=0,r=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+    else: daily_sums = [0] * 30
+    
+    # Updated Heatmap for seamless blending
+    fig_h = go.Figure(data=go.Heatmap(
+        z=[daily_sums[i:i+6] for i in range(0, 30, 6)], 
+        colorscale=['#242424', '#0e4429', '#006d32', '#26a641', '#39d353'], 
+        showscale=False, 
+        xgap=4, # Visual spacing between 'blocks'
+        ygap=4
+    ))
+    fig_h.update_layout(
+        height=200, 
+        margin=dict(t=0,b=0,l=0,r=0), 
+        paper_bgcolor='#191919', # Matches main page background
+        plot_bgcolor='#191919'
+    )
     fig_h.update_xaxes(visible=False); fig_h.update_yaxes(visible=False)
     st.plotly_chart(fig_h, use_container_width=True, config={'displayModeBar': False})
 
 # ---------------- SEARCH & HISTORY ----------------
 st.write("##")
-st.markdown("### 🔍 Search & History")
-q = st.text_input("", placeholder="Filter list...", label_visibility="collapsed")
+hist_col1, hist_col2 = st.columns([4, 1])
+with hist_col1:
+    st.markdown("### 📜 The Paper Trail")
+    q = st.text_input("", placeholder="Recalling a memory...", label_visibility="collapsed")
+with hist_col2:
+    st.markdown('<div style="height:61px"></div>', unsafe_allow_html=True)
+    if st.button("🧼 Reset Board", use_container_width=True):
+        st.session_state.expense_history = []
+        st.rerun()
 
 if not df.empty:
     filtered = df[df['Description'].str.contains(q, case=False) | df['Category'].str.contains(q, case=False)]
@@ -286,9 +256,7 @@ if not df.empty:
                 </div>
             ''', unsafe_allow_html=True)
         with c_del:
-            # Vertical alignment spacer added
             st.markdown('<div style="margin-top: 22px;"></div>', unsafe_allow_html=True)
-            # Native streamlit button with custom CSS styling applied above
-            if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
+            if st.button("Undo", key=f"del_{item['id']}", use_container_width=True):
                 st.session_state.expense_history = [x for x in st.session_state.expense_history if x["id"] != item["id"]]
                 st.rerun()
