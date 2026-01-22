@@ -41,14 +41,12 @@ st.markdown("""
 
 /* Sidebar & Layout Elements */
 .sidebar-spacer { margin-top: 25px; margin-bottom: 10px; border-top: 1px solid #2f2f2f; }
-
 .apple-badge {
     padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
     display: inline-flex; align-items: center; margin-left: 10px;
 }
 .warning-active { background-color: rgba(255, 159, 10, 0.15); color: #ff9f0a; border: 1px solid rgba(255, 159, 10, 0.3); }
 .warning-neutral { background-color: rgba(0, 122, 255, 0.1); color: #007aff; border: 1px solid rgba(0, 122, 255, 0.2); }
-
 .metric-container { background: #202020; border: 1px solid #2f2f2f; border-radius: 12px; padding: 20px; }
 
 /* Notion-style Tags */
@@ -89,7 +87,7 @@ if "income" not in st.session_state:
 
 df = pd.DataFrame(st.session_state.expense_history)
 
-# ---------------- HELPER FUNCTIONS ----------------
+# ---------------- HELPER FUNCTIONS (FIXED FOR ONLINE) ----------------
 def generate_pdf(dataframe, income, total_spent, total_savings):
     pdf = FPDF()
     pdf.add_page()
@@ -101,22 +99,33 @@ def generate_pdf(dataframe, income, total_spent, total_savings):
     pdf.set_font("Arial", '', 11)
     pdf.cell(50, 8, f"Total Capital: {income:,.2f}", ln=True)
     pdf.cell(50, 8, f"Total Outflow: {total_spent:,.2f}", ln=True)
+    
     if total_savings >= 0:
         pdf.set_text_color(0, 128, 0)
         pdf.cell(50, 8, f"Capital Retained: {total_savings:,.2f}", ln=True)
     else:
         pdf.set_text_color(255, 0, 0)
         pdf.cell(50, 8, f"Deficit: {abs(total_savings):,.2f}", ln=True)
+    
     pdf.set_text_color(0, 0, 0); pdf.ln(10)
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(30, 8, "Timeline", 1); pdf.cell(40, 8, "Vibe", 1); pdf.cell(80, 8, "Context", 1); pdf.cell(40, 8, "Value", 1, 1)
+    
     pdf.set_font("Arial", '', 9)
     for _, row in dataframe.iterrows():
         pdf.cell(30, 8, str(row['Date']), 1)
         pdf.cell(40, 8, str(row['Category']), 1)
         pdf.cell(80, 8, str(row['Description'])[:35], 1)
         pdf.cell(40, 8, f"{row['Amount']:,.2f}", 1, 1)
-    return pdf.output(dest='S').encode('latin-1')
+    
+    # FIXED: Bulletproof output for both fpdf and fpdf2
+    try:
+        pdf_out = pdf.output(dest='S')
+        if isinstance(pdf_out, str):
+            return pdf_out.encode('latin-1')
+        return pdf_out
+    except:
+        return pdf.output()
 
 # ---------------- SIDEBAR ----------------
 with st.sidebar:
@@ -137,10 +146,14 @@ with header_col2:
     if not df.empty:
         total_spent = df['Amount'].sum()
         total_savings = st.session_state.income - total_spent
+        
+        # CSV Encoding
         csv_data = df.to_csv(index=False).encode('utf-8')
         b64_csv = base64.b64encode(csv_data).decode()
-        pdf_bytes = generate_pdf(df, st.session_state.income, total_spent, total_savings)
-        b64_pdf = base64.b64encode(pdf_bytes).decode()
+        
+        # PDF Encoding (Fixed for Python 3 Bytes requirement)
+        pdf_data = generate_pdf(df, st.session_state.income, total_spent, total_savings)
+        b64_pdf = base64.b64encode(pdf_data).decode()
         
         st.markdown(f'''
             <div class="action-group">
@@ -185,7 +198,7 @@ with st.container():
     with warn_col:
         st.markdown(f'<div style="height:45px; display:flex; align-items:center;">{badge_html}</div>', unsafe_allow_html=True)
 
-# ---------------- ANALYTICS (HEATMAP BORDERS FIXED) ----------------
+# ---------------- ANALYTICS ----------------
 st.write("##")
 col_pie, col_heat = st.columns([1, 2])
 with col_pie:
@@ -208,20 +221,14 @@ with col_heat:
         daily_sums = df_c.groupby('Date')['Amount'].sum().reindex(last_30, fill_value=0).values
     else: daily_sums = [0] * 30
     
-    # Updated Heatmap for seamless blending
     fig_h = go.Figure(data=go.Heatmap(
         z=[daily_sums[i:i+6] for i in range(0, 30, 6)], 
         colorscale=['#242424', '#0e4429', '#006d32', '#26a641', '#39d353'], 
         showscale=False, 
-        xgap=4, # Visual spacing between 'blocks'
+        xgap=4, 
         ygap=4
     ))
-    fig_h.update_layout(
-        height=200, 
-        margin=dict(t=0,b=0,l=0,r=0), 
-        paper_bgcolor='#191919', # Matches main page background
-        plot_bgcolor='#191919'
-    )
+    fig_h.update_layout(height=200, margin=dict(t=0,b=0,l=0,r=0), paper_bgcolor='#191919', plot_bgcolor='#191919')
     fig_h.update_xaxes(visible=False); fig_h.update_yaxes(visible=False)
     st.plotly_chart(fig_h, use_container_width=True, config={'displayModeBar': False})
 
