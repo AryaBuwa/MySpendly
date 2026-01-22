@@ -62,7 +62,7 @@ streamlit run app.py
 ### **Planned Features (Roadmap)**
 * [ ] **Multi-Currency Support:** Automatic conversion for international use.
 * [ ] **Recurring Transactions:** Automation for monthly subscriptions and rent.
-* [ ] **CSV and PDF Summaries:** CSV and PDF export functionality with beautifully formatted monthly financial reports for offline storage.
+* [0] **CSV and PDF Summaries:** CSV and PDF export functionality with beautifully formatted monthly financial reports for offline storage.
 * [ ] **Visual Alerts:** Notifications when an "Envelope" exceeds 80% of its capacity.
 
 ---
