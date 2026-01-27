@@ -1,0 +1,13 @@
+name: Streamlit Keep Alive
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # Runs every 6 hours
+  workflow_dispatch:      
+
+jobs:
+  ping_app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Ping
+        run: curl -I https://YOUR-APP-NAME.streamlit.app/
