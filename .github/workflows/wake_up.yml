@@ -5,7 +5,31 @@ on:
     - cron: '0 */6 * * *'   # Runs every 6 hours
   workflow_dispatch:      
 
+jobs:name: Wake My App
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
 jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+      - run: pip install playwright && playwright install chromium
+      - run: |
+          python -c "
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              page.goto('https://myspendly.streamlit.app/')
+              page.wait_for_timeout(10000)
+              # If button exists, click it. If not, don't worry!
+              if page.get_by_text('Yes, get this app back up').is_visible():
+                  page.get_by_text('Yes, get this app back up').click()
+              browser.close()
+          "
   ping_app:
     runs-on: ubuntu-latest
     steps:
