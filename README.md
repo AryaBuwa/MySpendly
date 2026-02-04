@@ -81,4 +81,4 @@ streamlit run app.py
 > [!CAUTION]
 > **Disclaimer:** The author is not responsible for any financial decisions made based on the data provided by this app. Use at your own risk.
 
----
+----
