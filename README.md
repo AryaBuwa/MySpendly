@@ -48,6 +48,11 @@ pip install -r requirements.txt
 streamlit run app.py
 
 ```
+
+### Experimental:
+
+**Currently exploring LLM-powered insights and advanced automation.**
+
 ---
 
 ## 📝 Changelog & Roadmap
