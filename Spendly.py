@@ -9,6 +9,46 @@ from fpdf import FPDF
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Spendly Pro | Financial Management", page_icon="💳", layout="wide")
 
+# ---------------- Consolidated CSS and HTML Banner for Upcoming Releases ----------------
+st.markdown("""
+<style>
+.banner {
+    background: #f8f9fa;
+    color: #31333F;
+    padding: 14px 18px;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.banner-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.banner-date {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 6px 0 10px;
+}
+
+.banner-features {
+    font-size: 13px;
+    color: #4b5563;
+}
+</style>
+
+<div class="banner">
+    <div class="banner-title">🚀 Upcoming Release</div>
+    <div class="banner-date">Scheduled for July 6, 2026</div>
+    <div class="banner-features">
+        UI refinements • Improved user experience • Feature enhancements
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # ---------------- APPLE & NOTION THEME CSS ----------------
 st.markdown("""
 <style>
