@@ -1,5 +1,31 @@
 # 💳 Spendly Pro
-### **Personal Finance, Reimagined for Focus.**
+
+<div align="center">
+
+### Personal Finance, Reimagined for Focus.
+
+A modern personal finance and expense tracking application built with simplicity, speed, and clarity in mind.
+
+![Status](https://img.shields.io/badge/Status-Active%20Development-22c55e?style=for-the-badge)
+![Next Release](https://img.shields.io/badge/Next%20Release-July%206%2C%202026-2563eb?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-v1.0.0-black?style=for-the-badge)
+
+</div>
+
+---
+
+> [!NOTE]
+> ## 🚀 Upcoming Release — July 6, 2026
+>
+> The next release focuses on delivering a cleaner, faster, and more intuitive experience.
+>
+> **What's Coming**
+> - 🎨 Refined user interface
+> - ✨ Improved user experience
+> - ⚡ Feature enhancements
+> - 🛠️ Performance improvements and bug fixes
+
+---
 
 [**Launch Live Application**](https://myspendly.streamlit.app/) • [View Repository](https://github.com/AryaBuwa/MySpendly)
 
