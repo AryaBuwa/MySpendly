@@ -7,7 +7,7 @@
 A modern personal finance and expense tracking application built with simplicity, speed, and clarity in mind.
 
 ![Status](https://img.shields.io/badge/Status-Active%20Development-22c55e?style=for-the-badge)
-![Next Release](https://img.shields.io/badge/Next%20Release-July%208%2C%202026-2563eb?style=for-the-badge)
+![Next Release](https://img.shields.io/badge/Next%20Release-July%210%2C%202026-2563eb?style=for-the-badge)
 ![Version](https://img.shields.io/badge/Version-v1.0.0-black?style=for-the-badge)
 
 </div>
