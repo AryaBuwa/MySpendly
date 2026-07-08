@@ -42,7 +42,7 @@ st.markdown("""
 
 <div class="banner">
     <div class="banner-title">🚀 Upcoming Release</div>
-    <div class="banner-date">Scheduled for July 6, 2026</div>
+    <div class="banner-date">Scheduled for July 10, 2026</div>
     <div class="banner-features">
         UI refinements • Improved user experience • Feature enhancements
     </div>
