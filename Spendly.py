@@ -30,7 +30,7 @@ st.markdown("""
 
 <div class="banner">
     <div class="banner-title">🚀 Upcoming Release</div>
-    <div class="banner-date">Scheduled for July 20, 2026</div>
+    <div class="banner-date">Scheduled for August 20, 2026</div>
     <div class="banner-features">
         Smart Bank CSV Import &bull;
         Multi-bank support &bull;
