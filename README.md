@@ -22,6 +22,7 @@ A modern personal finance and expense tracking application built with simplicity
 > **What's Coming**
 > - 🎨 Refined user interface
 > - ✨ Improved user experience
+> - 💤 Under Testing 
 
 ---
 
