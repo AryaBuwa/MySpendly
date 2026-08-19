@@ -22,7 +22,10 @@ A modern personal finance and expense tracking application built with simplicity
 > **What's Coming**
 > - 🎨 Refined user interface
 > - ✨ Improved user experience
-
+> 
+> **Current Progress**
+> - UI has little bugs and button colours are bad.
+> - UX is good, just have to cross-check again tomorrow for final ship.
 ---
 
 [**Launch Live Application**](https://myspendly.streamlit.app/) • [View Repository](https://github.com/AryaBuwa/MySpendly)
