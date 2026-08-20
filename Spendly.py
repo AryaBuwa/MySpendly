@@ -10,34 +10,36 @@ from fpdf import FPDF
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Spendly Pro | Financial Management", page_icon="💳", layout="wide")
 
-# ---------------- Consolidated CSS and HTML Banner for Upcoming Releases ----------------
+# ---------------- Consolidated CSS and HTML for "What's New" strip ----------------
 st.markdown("""
 <style>
-.banner {
-    background: #f8f9fa;
-    color: #31333F;
-    padding: 14px 18px;
-    text-align: center;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
+.whats-new {
+    background: #202020;
+    border: 1px solid #2f2f2f;
+    border-left: 3px solid #007aff;
+    border-radius: 12px;
+    padding: 14px 20px;
     margin-bottom: 25px;
-    line-height: 1.6;
 }
-.banner-title { font-size: 15px; font-weight: 700; }
-.banner-date { font-size: 13px; color: #6b7280; margin: 6px 0 10px; }
-.banner-features { font-size: 13px; color: #4b5563; }
+.whats-new-title {
+    font-size: 13px; font-weight: 700; color: #ffffff;
+    display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+}
+.whats-new-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.whats-new-chip {
+    background: rgba(255,255,255,0.05); border: 1px solid #2f2f2f;
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; color: #d4d4d8;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.whats-new-chip b { color: #ffffff; font-weight: 600; }
 </style>
 
-<div class="banner">
-    <div class="banner-title">🚀 Upcoming Release</div>
-    <div class="banner-date">Scheduled for August 20, 2026</div>
-    <div class="banner-features">
-        Smart Bank CSV Import &bull;
-        Multi-bank support &bull;
-        Inline transaction editing &bull;
-        Budget progress bars &bull;
-        Visual envelope alerts &bull;
-        Full UI redesign
+<div class="whats-new">
+    <div class="whats-new-title">✨ What's New</div>
+    <div class="whats-new-items">
+        <span class="whats-new-chip">🎯 <b>Financial Goals</b> — set targets, track monthly progress</span>
+        <span class="whats-new-chip">📥 <b>Bank CSV Import</b> — auto-detects your bank's columns</span>
+        <span class="whats-new-chip">📄 <b>CSV & PDF Reports</b> — one-click exports</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -65,7 +67,28 @@ st.markdown("""
 .apple-badge { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; margin-left: 10px; }
 .warning-active { background-color: rgba(255,159,10,0.15); color: #ff9f0a; border: 1px solid rgba(255,159,10,0.3); }
 .warning-neutral { background-color: rgba(0,122,255,0.1); color: #007aff; border: 1px solid rgba(0,122,255,0.2); }
-.metric-container { background: #202020; border: 1px solid #2f2f2f; border-radius: 12px; padding: 20px; }
+.metric-container { background: #202020; border: 1px solid #2f2f2f; border-top: 3px solid var(--accent, #2f2f2f); border-radius: 12px; padding: 20px; }
+
+/* PRIMARY BUTTONS (Confirm Entry, Add Goal, Import) — reuse the existing blue */
+button[kind="primary"] {
+    background-color: #007aff !important; color: #ffffff !important;
+    border: none !important; border-radius: 8px !important;
+    font-size: 13px !important; font-weight: 500 !important; height: 38px !important;
+}
+button[kind="primary"]:hover { background-color: #0063cc !important; box-shadow: 0 4px 12px rgba(0,122,255,0.3) !important; }
+
+/* DESTRUCTIVE BUTTONS (Delete, Reset Database) */
+div[class*="st-key-delwrap_"] button, div[class*="st-key-resetwrap"] button {
+    background-color: transparent !important; color: #ff6961 !important;
+    border: 1px solid rgba(255,105,97,0.35) !important;
+}
+div[class*="st-key-delwrap_"] button:hover, div[class*="st-key-resetwrap"] button:hover {
+    background-color: rgba(255,105,97,0.1) !important; border-color: #ff6961 !important; color: #ff8983 !important;
+}
+div[class*="st-key-confirmyes_"] button, div[class*="st-key-confirmreset_yes"] button {
+    background-color: rgba(255,105,97,0.15) !important; color: #ff6961 !important;
+    border: 1px solid #ff6961 !important; font-weight: 600 !important;
+}
 
 .tag { padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .tag-food { background: #452219; color: #e07941; }
@@ -208,6 +231,15 @@ with header_col2:
             </div>
         ''', unsafe_allow_html=True)
 
+with st.expander("⚡ Quick Start — 30 sec read"):
+    st.markdown("""
+1. **Log spend** — fill the form below, hit *Confirm Entry*.
+2. **Set budgets** — adjust envelope limits in the sidebar.
+3. **Import statements** — upload a bank CSV further down to bulk-add transactions.
+4. **Track goals** — add a savings target to see monthly progress.
+5. **Export** — grab a CSV or PDF report anytime, top-right.
+""")
+
 st.write("##")
 
 # ---------------- METRICS ----------------
@@ -221,9 +253,9 @@ else:
     savings_label, savings_color, display_value = "BUDGET OVERAGE", "#ff3b30", abs(total_savings)
 
 m1, m2, m3 = st.columns(3)
-with m1: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">AGGREGATE BUDGET</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
-with m2: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">TOTAL EXPENDITURE</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
-with m3: st.markdown(f'<div class="metric-container"><small style="color:#8a8a8a">{savings_label}</small><br><h2 style="margin:0; color:{savings_color}">₹{display_value:,.0f}</h2></div>', unsafe_allow_html=True)
+with m1: st.markdown(f'<div class="metric-container" style="--accent:#007aff"><small style="color:#8a8a8a">AGGREGATE BUDGET</small><br><h2 style="margin:0">₹{total_budget:,.0f}</h2></div>', unsafe_allow_html=True)
+with m2: st.markdown(f'<div class="metric-container" style="--accent:#ff9500"><small style="color:#8a8a8a">TOTAL EXPENDITURE</small><br><h2 style="margin:0; color:#ffffff">₹{total_spent:,.0f}</h2></div>', unsafe_allow_html=True)
+with m3: st.markdown(f'<div class="metric-container" style="--accent:{savings_color}"><small style="color:#8a8a8a">{savings_label}</small><br><h2 style="margin:0; color:{savings_color}">₹{display_value:,.0f}</h2></div>', unsafe_allow_html=True)
 
 # ---------------- ENTRY FORM ----------------
 st.write("##")
@@ -237,7 +269,7 @@ with st.container():
     badge_html = f'<div class="apple-badge warning-neutral">⦿ Current</div>' if is_today else f'<div class="apple-badge warning-active">⚠️ {d_in.strftime("%b %d")}</div>'
     btn_col, warn_col = st.columns([1, 4])
     with btn_col:
-        if st.button("Confirm Entry", use_container_width=True):
+        if st.button("Confirm Entry", use_container_width=True, type="primary"):
             if desc_in and amt_in > 0:
                 st.session_state.expense_history.insert(0, {"id": str(uuid.uuid4()), "Date": d_in, "Category": cat_in, "Description": desc_in, "Amount": amt_in})
                 st.rerun()
@@ -284,9 +316,23 @@ with hist_col1:
     q = st.text_input("", placeholder="Search records...", label_visibility="collapsed")
 with hist_col2:
     st.markdown('<div style="height:61px"></div>', unsafe_allow_html=True)
-    if st.button("Reset Database", use_container_width=True):
-        st.session_state.expense_history = []
-        st.rerun()
+    if st.session_state.get("confirm_reset"):
+        rc1, rc2 = st.columns(2)
+        with rc1:
+            with st.container(key="confirmreset_yes"):
+                if st.button("Confirm", use_container_width=True, key="reset_yes"):
+                    st.session_state.expense_history = []
+                    st.session_state.confirm_reset = False
+                    st.rerun()
+        with rc2:
+            if st.button("Cancel", use_container_width=True, key="reset_no"):
+                st.session_state.confirm_reset = False
+                st.rerun()
+    else:
+        with st.container(key="resetwrap"):
+            if st.button("Reset Database", use_container_width=True, key="reset_db_btn"):
+                st.session_state.confirm_reset = True
+                st.rerun()
 
 if not df.empty:
     filtered = df[df['Description'].str.contains(q, case=False) | df['Category'].str.contains(q, case=False)]
@@ -308,9 +354,24 @@ if not df.empty:
             ''', unsafe_allow_html=True)
         with c_del:
             st.markdown('<div style="margin-top: 22px;"></div>', unsafe_allow_html=True)
-            if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
-                st.session_state.expense_history = [x for x in st.session_state.expense_history if x["id"] != item["id"]]
-                st.rerun()
+            pending_key = f"confirm_del_{item['id']}"
+            if st.session_state.get(pending_key):
+                dc1, dc2 = st.columns(2)
+                with dc1:
+                    with st.container(key=f"confirmyes_{item['id']}"):
+                        if st.button("✓", key=f"yes_{item['id']}", use_container_width=True, help="Confirm delete"):
+                            st.session_state.expense_history = [x for x in st.session_state.expense_history if x["id"] != item["id"]]
+                            st.session_state.pop(pending_key, None)
+                            st.rerun()
+                with dc2:
+                    if st.button("✕", key=f"no_{item['id']}", use_container_width=True, help="Cancel"):
+                        st.session_state.pop(pending_key, None)
+                        st.rerun()
+            else:
+                with st.container(key=f"delwrap_{item['id']}"):
+                    if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
+                        st.session_state[pending_key] = True
+                        st.rerun()
 
 # ════════════════════════════════════════════════════════════════════════════
 # NEW FEATURES
@@ -340,7 +401,7 @@ with st.container():
     goal_target = gb.number_input("Target (₹)", min_value=0.0, step=1000.0, key="gtarget")
     goal_saved  = gc.number_input("Already Saved (₹)", min_value=0.0, step=500.0, key="gsaved")
     goal_months = gd.number_input("Months Left", min_value=1, max_value=60, value=6, key="gmonths")
-    if st.button("Add Goal", key="add_goal"):
+    if st.button("Add Goal", key="add_goal", type="primary"):
         if goal_name.strip() and goal_target > 0:
             st.session_state.goals.append({
                 "id": str(uuid.uuid4()),
@@ -401,7 +462,7 @@ with st.expander("ℹ️ How monthly archiving works", expanded=False):
 
 arc_col, _ = st.columns([1, 4])
 with arc_col:
-    if st.button("📦 Archive This Month", key="archive_month"):
+    if st.button("Archive This Month", key="archive_month"):
         did_archive = archive_current_month()
         if did_archive:
             st.success(f"Archived {datetime.now().strftime('%B %Y')} successfully. Ledger cleared.")
@@ -738,7 +799,7 @@ if uploaded_csv:
             checked_rows = edited[edited["Import"] == True]
             st.caption(f"{len(checked_rows)} of {n_valid} rows selected for import.")
 
-            if st.button("⬆️ Import Selected Transactions", key="do_import"):
+            if st.button("⬆️ Import Selected Transactions", key="do_import", type="primary"):
                 if checked_rows.empty:
                     st.warning("No rows selected. Tick at least one row to import.")
                 else:
