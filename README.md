@@ -24,6 +24,36 @@ Spendly Pro is a high-performance, minimalist expense tracker inspired by the de
 
 ---
 
+## 🏗️ Application Architecture
+
+flowchart LR
+    A[User] --> B[Spendly Pro]
+
+    B --> C[Expense Entry]
+    B --> D[Bank CSV Import]
+    B --> E[Financial Goals]
+    B --> F[Envelope Budgets]
+
+    C --> G[Transaction Ledger]
+    D --> G
+
+    G --> H[Data Processing<br/>Pandas]
+
+    H --> I[Spending Analytics]
+    H --> J[Budget Tracking]
+    H --> K[Financial Progress]
+
+    I --> L[Plotly Visualizations]
+    J --> L
+    K --> L
+
+    G --> M[CSV / PDF Export]
+
+    L --> N[Dashboard]
+    M --> N
+
+---
+
 ## ⚡ Quick Start
 
 New here? This is genuinely a 30-second read — it's also built directly into the app under **Quick Start**.
