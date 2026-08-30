@@ -27,6 +27,7 @@ Spendly Pro is a high-performance, minimalist expense tracker inspired by the de
 ## 🏗️ Application Architecture
 
 flowchart LR
+    
     A[User] --> B[Spendly Pro]
 
     B --> C[Expense Entry]
