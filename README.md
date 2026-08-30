@@ -52,7 +52,7 @@ flowchart LR
 
     L --> N[Dashboard]
     M --> N
-    
+```
 ---
 
 ## ⚡ Quick Start
